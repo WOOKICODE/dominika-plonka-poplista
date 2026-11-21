@@ -1,5 +1,5 @@
 import './style.css'
-import starSvg from '../public/Star.svg?raw'
+import starSvg from './star.svg?raw'
 
 const cursorDot = document.querySelector('#cursor-dot')
 const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)')
@@ -112,7 +112,7 @@ function startAnimation() {
 }
 
 window.addEventListener('pointermove', (event) => {
-  if (reducedMotion.matches || event.pointerType === 'touch') return
+  if (reducedMotion.matches || !event.isPrimary) return
   const now = performance.now()
   const current = { x: event.clientX, y: event.clientY, time: now }
   const previous = previousPointer && now - previousPointer.time < 150
@@ -130,10 +130,14 @@ window.addEventListener('pointermove', (event) => {
 }, { passive: true })
 
 window.addEventListener('pointerdown', (event) => {
-  if (reducedMotion.matches) return
+  if (reducedMotion.matches || !event.isPrimary) return
+  previousPointer = { x: event.clientX, y: event.clientY, time: performance.now() }
   for (let i = 0; i < (event.pointerType === 'touch' ? 8 : 16); i++) addStar(event.clientX, event.clientY)
   startAnimation()
 }, { passive: true })
+
+window.addEventListener('pointerup', () => { previousPointer = null }, { passive: true })
+window.addEventListener('pointercancel', () => { previousPointer = null }, { passive: true })
 
 function reset() {
   cancelAnimationFrame(frame)
@@ -150,6 +154,7 @@ document.addEventListener('visibilitychange', () => {
 })
 reducedMotion.addEventListener('change', reset)
 resize()
+
 
 
 
